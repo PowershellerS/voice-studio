@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voice Studio — Make Your Video Sound Professional</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --panel-2: #1e222b;
+    --border: #2a2f3a;
+    --text: #e7e9ee;
+    --muted: #8b93a3;
+    --accent: #6c8cff;
+    --accent-2: #47d6a4;
+    --danger: #ff6b6b;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+    background: radial-gradient(1200px 800px at 50% -10%, #1a1f2b, var(--bg));
+    color: var(--text);
+    min-height: 100vh;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 48px 20px 80px; }
+  header { text-align: center; margin-bottom: 36px; }
+  header h1 { font-size: 2rem; margin: 0 0 8px; letter-spacing: -0.02em; }
+  header p { color: var(--muted); margin: 0; font-size: 1.02rem; }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+
+  #dropzone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 44px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  #dropzone.drag { border-color: var(--accent); background: rgba(108,140,255,0.06); }
+  #dropzone .icon { font-size: 2.2rem; margin-bottom: 10px; }
+  #dropzone .main { font-size: 1.05rem; margin-bottom: 4px; }
+  #dropzone .sub { color: var(--muted); font-size: 0.88rem; }
+  #fileInput { display: none; }
+
+  .filepill {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 16px; margin-top: 14px;
+  }
+  .filepill span.name { font-size: 0.92rem; }
+  .filepill button {
+    background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.85rem;
+  }
+  .filepill button:hover { color: var(--danger); }
+
+  .presets { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 22px; }
+  @media (max-width: 620px) { .presets { grid-template-columns: 1fr; } }
+  .preset {
+    border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px;
+    cursor: pointer; background: var(--panel-2); transition: border-color .15s, background .15s;
+  }
+  .preset:hover { border-color: #3a4152; }
+  .preset.selected { border-color: var(--accent); background: rgba(108,140,255,0.08); }
+  .preset .plabel { font-weight: 600; font-size: 0.95rem; margin-bottom: 4px; display:flex; align-items:center; gap:6px;}
+  .preset .pdesc { color: var(--muted); font-size: 0.82rem; line-height: 1.4; }
+  .badge {
+    font-size: 0.65rem; background: var(--accent); color: white; padding: 2px 7px;
+    border-radius: 20px; font-weight: 600; letter-spacing: 0.02em;
+  }
+
+  .btn {
+    display: block; width: 100%; padding: 14px; border-radius: 10px; border: none;
+    background: var(--accent); color: white; font-size: 1rem; font-weight: 600;
+    cursor: pointer; margin-top: 22px; transition: opacity .15s, transform .1s;
+  }
+  .btn:hover { opacity: 0.92; }
+  .btn:active { transform: scale(0.99); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .progress-wrap { margin-top: 20px; display: none; }
+  .progress-wrap.show { display: block; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; }
+  .progress-track { height: 8px; background: var(--panel-2); border-radius: 20px; overflow: hidden; border: 1px solid var(--border); }
+  .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .4s ease; }
+
+  .results { display: none; margin-top: 8px; }
+  .results.show { display: block; }
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 18px 0; }
+  @media (max-width: 620px) { .stats-grid { grid-template-columns: 1fr; } }
+  .stat { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; text-align: center; }
+  .stat .k { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+  .stat .before { color: var(--muted); font-size: 0.85rem; text-decoration: line-through; }
+  .stat .after { font-size: 1.15rem; font-weight: 700; color: var(--accent-2); }
+
+  video { width: 100%; border-radius: 10px; margin-top: 6px; background: black; }
+
+  .actions { display: flex; gap: 10px; margin-top: 18px; }
+  .actions .btn { margin-top: 0; }
+  .btn.secondary { background: var(--panel-2); border: 1px solid var(--border); color: var(--text); }
+
+  .error-box {
+    display: none; margin-top: 18px; background: rgba(255,107,107,0.08);
+    border: 1px solid rgba(255,107,107,0.35); color: #ffb3b3;
+    border-radius: 10px; padding: 14px 16px; font-size: 0.88rem; white-space: pre-wrap;
+  }
+  .error-box.show { display: block; }
+
+  footer { text-align: center; color: var(--muted); font-size: 0.8rem; margin-top: 30px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🎙️ Voice Studio</h1>
+    <p>Upload a video shot on a mini mic — get back a clean, warm, studio-sounding voice track.</p>
+  </header>
+
+  <div class="card">
+    <div id="dropzone">
+      <div class="icon">📁</div>
+      <div class="main">Drag & drop a video, or click to choose one</div>
+      <div class="sub">MP4, MOV, MKV, WEBM, AVI — up to 2 GB</div>
+      <input type="file" id="fileInput" accept="video/*">
+    </div>
+    <div class="filepill" id="filePill" style="display:none;">
+      <span class="name" id="fileName"></span>
+      <button id="clearFile">Remove</button>
+    </div>
+
+    <div class="presets" id="presets">
+      {% for p in presets %}
+      <div class="preset {% if p.key == default_preset %}selected{% endif %}" data-key="{{ p.key }}">
+        <div class="plabel">{{ p.label }} {% if p.key == default_preset %}<span class="badge">Recommended</span>{% endif %}</div>
+        <div class="pdesc">{{ p.description }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <button class="btn" id="processBtn" disabled>Enhance Voice</button>
+
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-label"><span id="stageLabel">Starting…</span><span id="pctLabel">0%</span></div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+
+    <div class="error-box" id="errorBox"></div>
+
+    <div class="results" id="results">
+      <h3 style="margin-bottom:4px;">✅ Done</h3>
+      <p style="color:var(--muted); font-size:0.88rem; margin-top:0;">Video quality is untouched — only the audio was processed.</p>
+      <div class="stats-grid">
+        <div class="stat">
+          <div class="k">Loudness</div>
+          <div class="before" id="statLufsBefore"></div>
+          <div class="after" id="statLufsAfter"></div>
+        </div>
+        <div class="stat">
+          <div class="k">True Peak</div>
+          <div class="before" id="statTpBefore"></div>
+          <div class="after" id="statTpAfter"></div>
+        </div>
+        <div class="stat">
+          <div class="k">Dynamic Range</div>
+          <div class="before" id="statLraBefore"></div>
+          <div class="after" id="statLraAfter"></div>
+        </div>
+      </div>
+      <video id="previewVideo" controls></video>
+      <div class="actions">
+        <button class="btn secondary" id="startOverBtn">Process Another</button>
+        <a class="btn" id="downloadBtn" href="#" download style="text-decoration:none; text-align:center;">Download Enhanced Video</a>
+      </div>
+    </div>
+  </div>
+
+  <footer>Runs entirely on this machine — your video is never sent anywhere else.</footer>
+</div>
+
+<script>
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const filePill = document.getElementById('filePill');
+const fileName = document.getElementById('fileName');
+const clearFile = document.getElementById('clearFile');
+const presetsEl = document.getElementById('presets');
+const processBtn = document.getElementById('processBtn');
+const progressWrap = document.getElementById('progressWrap');
+const progressFill = document.getElementById('progressFill');
+const stageLabel = document.getElementById('stageLabel');
+const pctLabel = document.getElementById('pctLabel');
+const errorBox = document.getElementById('errorBox');
+const results = document.getElementById('results');
+const startOverBtn = document.getElementById('startOverBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+const previewVideo = document.getElementById('previewVideo');
+
+let selectedFile = null;
+let selectedPreset = "{{ default_preset }}";
+let pollTimer = null;
+
+function pickFile(f) {
+  if (!f) return;
+  selectedFile = f;
+  fileName.textContent = f.name + ' (' + (f.size / (1024*1024)).toFixed(1) + ' MB)';
+  filePill.style.display = 'flex';
+  dropzone.style.display = 'none';
+  processBtn.disabled = false;
+}
+
+dropzone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', e => pickFile(e.target.files[0]));
+
+['dragenter', 'dragover'].forEach(evt =>
+  dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.add('drag'); }));
+['dragleave', 'drop'].forEach(evt =>
+  dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.remove('drag'); }));
+dropzone.addEventListener('drop', e => {
+  const f = e.dataTransfer.files[0];
+  if (f) pickFile(f);
+});
+
+clearFile.addEventListener('click', () => {
+  selectedFile = null;
+  fileInput.value = '';
+  filePill.style.display = 'none';
+  dropzone.style.display = 'block';
+  processBtn.disabled = true;
+});
+
+presetsEl.addEventListener('click', e => {
+  const card = e.target.closest('.preset');
+  if (!card) return;
+  document.querySelectorAll('.preset').forEach(p => p.classList.remove('selected'));
+  card.classList.add('selected');
+  selectedPreset = card.dataset.key;
+});
+
+function resetUI() {
+  results.classList.remove('show');
+  errorBox.classList.remove('show');
+  progressWrap.classList.remove('show');
+  progressFill.style.width = '0%';
+  clearFile.click();
+}
+startOverBtn.addEventListener('click', resetUI);
+
+processBtn.addEventListener('click', async () => {
+  if (!selectedFile) return;
+  errorBox.classList.remove('show');
+  results.classList.remove('show');
+  progressWrap.classList.add('show');
+  processBtn.disabled = true;
+
+  const form = new FormData();
+  form.append('video', selectedFile);
+  form.append('preset', selectedPreset);
+
+  try {
+    const res = await fetch('/api/upload', { method: 'POST', body: form });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Upload failed.');
+    pollStatus(data.job_id);
+  } catch (err) {
+    showError(err.message);
+    processBtn.disabled = false;
+  }
+});
+
+function pollStatus(jobId) {
+  pollTimer = setInterval(async () => {
+    try {
+      const res = await fetch('/api/status/' + jobId);
+      const job = await res.json();
+      if (!res.ok) throw new Error(job.error || 'Status check failed.');
+
+      const pct = job.progress || 0;
+      progressFill.style.width = pct + '%';
+      pctLabel.textContent = pct + '%';
+      stageLabel.textContent = ({
+        queued: 'Queued…', analyzing: 'Analyzing audio…',
+        processing: 'Enhancing voice…', finalizing: 'Finalizing…', done: 'Done!'
+      })[job.stage] || job.stage;
+
+      if (job.status === 'done') {
+        clearInterval(pollTimer);
+        showResults(jobId, job.result);
+      } else if (job.status === 'error') {
+        clearInterval(pollTimer);
+        showError(job.error || 'Processing failed.');
+        processBtn.disabled = false;
+      }
+    } catch (err) {
+      clearInterval(pollTimer);
+      showError(err.message);
+      processBtn.disabled = false;
+    }
+  }, 1200);
+}
+
+function fmt(n, unit) { return (Math.round(n * 10) / 10) + ' ' + unit; }
+
+function showResults(jobId, result) {
+  progressWrap.classList.remove('show');
+  results.classList.add('show');
+  processBtn.disabled = false;
+
+  document.getElementById('statLufsBefore').textContent = fmt(result.before.integrated_lufs, 'LUFS');
+  document.getElementById('statLufsAfter').textContent = fmt(result.after.integrated_lufs, 'LUFS');
+  document.getElementById('statTpBefore').textContent = fmt(result.before.true_peak_dbtp, 'dBTP');
+  document.getElementById('statTpAfter').textContent = fmt(result.after.true_peak_dbtp, 'dBTP');
+  document.getElementById('statLraBefore').textContent = fmt(result.before.loudness_range, 'LU');
+  document.getElementById('statLraAfter').textContent = fmt(result.after.loudness_range, 'LU');
+
+  previewVideo.src = '/media/output/' + jobId;
+  downloadBtn.href = '/api/download/' + jobId;
+}
+
+function showError(msg) {
+  progressWrap.classList.remove('show');
+  errorBox.textContent = '⚠ ' + msg;
+  errorBox.classList.add('show');
+}
+</script>
+</body>
+</html>
