@@ -4,143 +4,305 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Voice Studio — Make Your Video Sound Professional</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0f1115;
-    --panel: #171a21;
-    --panel-2: #1e222b;
-    --border: #2a2f3a;
-    --text: #e7e9ee;
-    --muted: #8b93a3;
-    --accent: #6c8cff;
+    --bg: #0a0b10;
+    --panel: rgba(24, 27, 36, 0.72);
+    --panel-2: rgba(255, 255, 255, 0.04);
+    --panel-solid: #1a1d27;
+    --border: rgba(255, 255, 255, 0.09);
+    --border-hover: rgba(255, 255, 255, 0.18);
+    --text: #eef0f5;
+    --muted: #9399ab;
+    --accent: #7c6cff;
     --accent-2: #47d6a4;
+    --accent-3: #ff7ad1;
     --danger: #ff6b6b;
-    --radius: 14px;
+    --radius: 18px;
+    --radius-sm: 12px;
+    --shadow-soft: 0 20px 50px -15px rgba(0, 0, 0, 0.5);
+    --ease: cubic-bezier(.2, .8, .2, 1);
   }
   * { box-sizing: border-box; }
+  html { scrollbar-color: rgba(255,255,255,0.2) transparent; }
   body {
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
-    background: radial-gradient(1200px 800px at 50% -10%, #1a1f2b, var(--bg));
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
     color: var(--text);
     min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
   }
-  .wrap { max-width: 880px; margin: 0 auto; padding: 48px 20px 80px; }
-  header { text-align: center; margin-bottom: 36px; }
-  header h1 { font-size: 2rem; margin: 0 0 8px; letter-spacing: -0.02em; }
-  header p { color: var(--muted); margin: 0; font-size: 1.02rem; }
+
+  /* Soft glowing orbs drifting behind the content */
+  .bg-orbs { position: fixed; inset: 0; z-index: -1; overflow: hidden; }
+  .bg-orbs::before, .bg-orbs::after {
+    content: ""; position: absolute; border-radius: 50%; filter: blur(90px);
+    opacity: 0.35; animation: drift 22s ease-in-out infinite alternate;
+  }
+  .bg-orbs::before {
+    width: 560px; height: 560px; top: -180px; left: -120px;
+    background: radial-gradient(circle, var(--accent), transparent 70%);
+  }
+  .bg-orbs::after {
+    width: 480px; height: 480px; bottom: -160px; right: -100px;
+    background: radial-gradient(circle, var(--accent-2), transparent 70%);
+    animation-delay: -8s;
+  }
+  @keyframes drift {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(40px, 30px) scale(1.08); }
+  }
+
+  .wrap { max-width: 900px; margin: 0 auto; padding: 56px 20px 90px; position: relative; }
+
+  header { text-align: center; margin-bottom: 40px; }
+  .kicker {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--accent-2); background: rgba(71, 214, 164, 0.1);
+    border: 1px solid rgba(71, 214, 164, 0.25); border-radius: 30px;
+    padding: 6px 14px; margin-bottom: 18px;
+  }
+  .kicker .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-2); box-shadow: 0 0 10px var(--accent-2); }
+  header h1 {
+    font-family: "Sora", "Inter", sans-serif;
+    font-size: clamp(2.1rem, 5vw, 2.9rem); font-weight: 800; margin: 0 0 14px;
+    letter-spacing: -0.03em; line-height: 1.1;
+    display: flex; align-items: center; justify-content: center; gap: 14px;
+  }
+  .mic-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 52px; height: 52px; border-radius: 16px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--accent), var(--accent-3));
+    box-shadow: 0 10px 30px -8px rgba(124, 108, 255, 0.6);
+  }
+  .mic-badge svg { width: 26px; height: 26px; }
+  .title-gradient {
+    background: linear-gradient(90deg, #fff 10%, #c9c3ff 50%, #a9f0d6 90%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  header p { color: var(--muted); margin: 0 auto; font-size: 1.05rem; max-width: 520px; line-height: 1.55; }
 
   .card {
     background: var(--panel);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 28px;
+    padding: 32px;
     margin-bottom: 20px;
+    box-shadow: var(--shadow-soft);
   }
 
   #dropzone {
-    border: 2px dashed var(--border);
-    border-radius: var(--radius);
-    padding: 44px 20px;
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius-sm);
+    padding: 48px 20px;
     text-align: center;
     cursor: pointer;
-    transition: border-color .15s, background .15s;
+    transition: border-color .2s var(--ease), background .2s var(--ease), transform .2s var(--ease);
+    background: var(--panel-2);
   }
-  #dropzone.drag { border-color: var(--accent); background: rgba(108,140,255,0.06); }
-  #dropzone .icon { font-size: 2.2rem; margin-bottom: 10px; }
-  #dropzone .main { font-size: 1.05rem; margin-bottom: 4px; }
-  #dropzone .sub { color: var(--muted); font-size: 0.88rem; }
+  #dropzone:hover { border-color: var(--border-hover); transform: translateY(-1px); }
+  #dropzone.drag { border-color: var(--accent); background: rgba(124, 108, 255, 0.08); }
+  #dropzone .icon {
+    width: 60px; height: 60px; margin: 0 auto 16px; border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, rgba(124,108,255,0.18), rgba(71,214,164,0.18));
+    border: 1px solid var(--border);
+  }
+  #dropzone .icon svg { width: 26px; height: 26px; color: var(--accent-2); }
+  #dropzone .main { font-size: 1.05rem; font-weight: 600; margin-bottom: 6px; }
+  #dropzone .sub { color: var(--muted); font-size: 0.85rem; }
   #fileInput { display: none; }
 
   .filepill {
-    display: flex; align-items: center; justify-content: space-between;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
     background: var(--panel-2); border: 1px solid var(--border);
-    border-radius: 10px; padding: 12px 16px; margin-top: 14px;
+    border-radius: var(--radius-sm); padding: 14px 18px; margin-top: 14px;
   }
-  .filepill span.name { font-size: 0.92rem; }
+  .filepill .fmeta { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .filepill .ficon {
+    width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--accent), var(--accent-3));
+    display: flex; align-items: center; justify-content: center;
+  }
+  .filepill .ficon svg { width: 16px; height: 16px; color: white; }
+  .filepill span.name { font-size: 0.92rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .filepill button {
-    background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.85rem;
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--muted);
+    cursor: pointer; font-size: 0.8rem; font-weight: 500; padding: 7px 14px; border-radius: 8px;
+    transition: color .15s, border-color .15s;
+    flex-shrink: 0;
   }
-  .filepill button:hover { color: var(--danger); }
+  .filepill button:hover { color: var(--danger); border-color: rgba(255,107,107,0.4); }
 
-  .presets { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 22px; }
+  .presets { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 24px; }
   @media (max-width: 620px) { .presets { grid-template-columns: 1fr; } }
   .preset {
-    border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px;
-    cursor: pointer; background: var(--panel-2); transition: border-color .15s, background .15s;
+    position: relative; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px 18px;
+    cursor: pointer; background: var(--panel-2);
+    transition: border-color .2s var(--ease), background .2s var(--ease), transform .15s var(--ease);
   }
-  .preset:hover { border-color: #3a4152; }
-  .preset.selected { border-color: var(--accent); background: rgba(108,140,255,0.08); }
-  .preset .plabel { font-weight: 600; font-size: 0.95rem; margin-bottom: 4px; display:flex; align-items:center; gap:6px;}
-  .preset .pdesc { color: var(--muted); font-size: 0.82rem; line-height: 1.4; }
+  .preset:hover { border-color: var(--border-hover); transform: translateY(-2px); }
+  .preset.selected {
+    border-color: var(--accent);
+    background: linear-gradient(135deg, rgba(124,108,255,0.12), rgba(71,214,164,0.06));
+    box-shadow: 0 0 0 1px rgba(124,108,255,0.35), 0 12px 24px -12px rgba(124,108,255,0.4);
+  }
+  .preset .picon { font-size: 1.2rem; margin-right: 8px; }
+  .preset .plabel { font-weight: 600; font-size: 0.95rem; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .preset .pdesc { color: var(--muted); font-size: 0.82rem; line-height: 1.5; }
   .badge {
-    font-size: 0.65rem; background: var(--accent); color: white; padding: 2px 7px;
-    border-radius: 20px; font-weight: 600; letter-spacing: 0.02em;
+    font-size: 0.62rem; background: linear-gradient(90deg, var(--accent), var(--accent-3)); color: white;
+    padding: 3px 9px; border-radius: 20px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase;
   }
 
   .btn {
-    display: block; width: 100%; padding: 14px; border-radius: 10px; border: none;
-    background: var(--accent); color: white; font-size: 1rem; font-weight: 600;
-    cursor: pointer; margin-top: 22px; transition: opacity .15s, transform .1s;
+    display: block; width: 100%; padding: 15px; border-radius: var(--radius-sm); border: none;
+    background: linear-gradient(135deg, var(--accent), #6a5bef);
+    color: white; font-size: 1rem; font-weight: 700; font-family: "Inter", sans-serif;
+    cursor: pointer; margin-top: 24px;
+    transition: transform .15s var(--ease), box-shadow .2s var(--ease), opacity .15s;
+    box-shadow: 0 14px 30px -12px rgba(124, 108, 255, 0.65);
   }
-  .btn:hover { opacity: 0.92; }
-  .btn:active { transform: scale(0.99); }
-  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 18px 36px -12px rgba(124, 108, 255, 0.8); }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; transform: none; }
 
-  .progress-wrap { margin-top: 20px; display: none; }
-  .progress-wrap.show { display: block; }
-  .progress-label { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; }
-  .progress-track { height: 8px; background: var(--panel-2); border-radius: 20px; overflow: hidden; border: 1px solid var(--border); }
-  .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .4s ease; }
+  .progress-wrap { margin-top: 22px; display: none; }
+  .progress-wrap.show { display: block; animation: fadeIn .3s var(--ease); }
+  .progress-label { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--muted); margin-bottom: 10px; font-weight: 500; }
+  .progress-label span:last-child { color: var(--text); font-variant-numeric: tabular-nums; }
+  .progress-track { height: 10px; background: var(--panel-2); border-radius: 20px; overflow: hidden; border: 1px solid var(--border); position: relative; }
+  .progress-fill {
+    height: 100%; width: 0%; border-radius: 20px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    background-size: 200% 100%;
+    transition: width .5s var(--ease);
+    animation: shimmer 2.4s linear infinite;
+    position: relative;
+  }
+  @keyframes shimmer { 0% { background-position: 0% 0; } 100% { background-position: -200% 0; } }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
   .results { display: none; margin-top: 8px; }
-  .results.show { display: block; }
-  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 18px 0; }
+  .results.show { display: block; animation: fadeIn .4s var(--ease); }
+  .results-head { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .results-head .check {
+    width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--accent-2), #2fb389);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 6px 16px -4px rgba(71, 214, 164, 0.6);
+  }
+  .results-head .check svg { width: 15px; height: 15px; color: #0a0b10; }
+  .results-head h3 { margin: 0; font-family: "Sora", sans-serif; font-size: 1.2rem; font-weight: 700; }
+  .results-sub { color: var(--muted); font-size: 0.88rem; margin: 4px 0 0; }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; }
   @media (max-width: 620px) { .stats-grid { grid-template-columns: 1fr; } }
-  .stat { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; text-align: center; }
-  .stat .k { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
-  .stat .before { color: var(--muted); font-size: 0.85rem; text-decoration: line-through; }
-  .stat .after { font-size: 1.15rem; font-weight: 700; color: var(--accent-2); }
+  .stat {
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 16px; text-align: center; transition: border-color .2s;
+  }
+  .stat:hover { border-color: var(--border-hover); }
+  .stat .k { color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; font-weight: 600; }
+  .stat .before { color: var(--muted); font-size: 0.85rem; text-decoration: line-through; opacity: 0.7; }
+  .stat .after {
+    font-size: 1.25rem; font-weight: 800; font-family: "Sora", sans-serif;
+    background: linear-gradient(90deg, var(--accent-2), #7fe8c3);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
 
-  video { width: 100%; border-radius: 10px; margin-top: 6px; background: black; }
+  video {
+    width: 100%; border-radius: var(--radius-sm); margin-top: 8px; background: black;
+    border: 1px solid var(--border); box-shadow: var(--shadow-soft);
+  }
 
-  .actions { display: flex; gap: 10px; margin-top: 18px; }
+  .actions { display: flex; gap: 10px; margin-top: 20px; }
   .actions .btn { margin-top: 0; }
-  .btn.secondary { background: var(--panel-2); border: 1px solid var(--border); color: var(--text); }
+  .btn.secondary {
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+    box-shadow: none;
+  }
+  .btn.secondary:hover { border-color: var(--border-hover); box-shadow: none; transform: translateY(-1px); }
 
   .error-box {
-    display: none; margin-top: 18px; background: rgba(255,107,107,0.08);
-    border: 1px solid rgba(255,107,107,0.35); color: #ffb3b3;
-    border-radius: 10px; padding: 14px 16px; font-size: 0.88rem; white-space: pre-wrap;
+    display: none; margin-top: 20px; background: rgba(255, 107, 107, 0.08);
+    border: 1px solid rgba(255, 107, 107, 0.3); color: #ffb3b3;
+    border-radius: var(--radius-sm); padding: 16px 18px; font-size: 0.86rem;
+    white-space: pre-wrap; line-height: 1.5;
   }
-  .error-box.show { display: block; }
+  .error-box.show { display: block; animation: fadeIn .3s var(--ease); }
 
-  footer { text-align: center; color: var(--muted); font-size: 0.8rem; margin-top: 30px; }
+  footer {
+    text-align: center; color: var(--muted); font-size: 0.82rem; margin-top: 36px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  footer svg { width: 14px; height: 14px; opacity: 0.6; }
 </style>
 </head>
 <body>
+<div class="bg-orbs"></div>
 <div class="wrap">
   <header>
-    <h1>🎙️ Voice Studio</h1>
+    <div class="kicker"><span class="dot"></span> Free voice enhancement</div>
+    <h1>
+      <span class="mic-badge">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M19 11a7 7 0 0 1-14 0M12 18v3" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <span class="title-gradient">Voice Studio</span>
+    </h1>
     <p>Upload a video shot on a mini mic — get back a clean, warm, studio-sounding voice track.</p>
   </header>
 
   <div class="card">
     <div id="dropzone">
-      <div class="icon">📁</div>
+      <div class="icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 16V4m0 0 4 4m-4-4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
       <div class="main">Drag & drop a video, or click to choose one</div>
-      <div class="sub">MP4, MOV, MKV, WEBM, AVI — up to 100 MB</div>
+      <div class="sub">MP4, MOV, MKV, WEBM, AVI — up to {{ max_upload_mb }} MB</div>
       <input type="file" id="fileInput" accept="video/*">
     </div>
     <div class="filepill" id="filePill" style="display:none;">
-      <span class="name" id="fileName"></span>
+      <div class="fmeta">
+        <div class="ficon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="m10 8 6 4-6 4V8Z" fill="white"/>
+            <rect x="3" y="4" width="18" height="16" rx="3" stroke="white" stroke-width="1.6"/>
+          </svg>
+        </div>
+        <span class="name" id="fileName"></span>
+      </div>
       <button id="clearFile">Remove</button>
     </div>
 
     <div class="presets" id="presets">
       {% for p in presets %}
       <div class="preset {% if p.key == default_preset %}selected{% endif %}" data-key="{{ p.key }}">
-        <div class="plabel">{{ p.label }} {% if p.key == default_preset %}<span class="badge">Recommended</span>{% endif %}</div>
+        <div class="plabel">
+          <span class="picon">
+            {%- if p.key == 'light' -%}🧽
+            {%- elif p.key == 'studio' -%}🎚️
+            {%- elif p.key == 'podcast' -%}🔊
+            {%- elif p.key == 'aggressive' -%}🛡️
+            {%- else -%}✨{%- endif -%}
+          </span>{{ p.label }}
+          {% if p.key == default_preset %}<span class="badge">Recommended</span>{% endif %}
+        </div>
         <div class="pdesc">{{ p.description }}</div>
       </div>
       {% endfor %}
@@ -156,8 +318,15 @@
     <div class="error-box" id="errorBox"></div>
 
     <div class="results" id="results">
-      <h3 style="margin-bottom:4px;">✅ Done</h3>
-      <p style="color:var(--muted); font-size:0.88rem; margin-top:0;">Video quality is untouched — only the audio was processed.</p>
+      <div class="results-head">
+        <div class="check">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>Enhancement complete</h3>
+      </div>
+      <p class="results-sub">Video quality is untouched — only the audio was processed.</p>
       <div class="stats-grid">
         <div class="stat">
           <div class="k">Loudness</div>
@@ -183,7 +352,12 @@
     </div>
   </div>
 
-  <footer>Runs entirely on this machine — your video is never sent anywhere else.</footer>
+  <footer>
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 2 4 6v6c0 5 3.5 8.5 8 10 4.5-1.5 8-5 8-10V6l-8-4Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+    </svg>
+    Runs entirely on this machine — your video is never sent anywhere else.
+  </footer>
 </div>
 
 <script>
