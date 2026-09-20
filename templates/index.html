@@ -267,7 +267,7 @@ processBtn.addEventListener('click', async () => {
 
   try {
     const res = await fetch('/api/upload', { method: 'POST', body: form });
-    const data = await res.json();
+    const data = await safeJson(res);
     if (!res.ok) throw new Error(data.error || 'Upload failed.');
     pollStatus(data.job_id);
   } catch (err) {
@@ -280,7 +280,7 @@ function pollStatus(jobId) {
   pollTimer = setInterval(async () => {
     try {
       const res = await fetch('/api/status/' + jobId);
-      const job = await res.json();
+      const job = await safeJson(res);
       if (!res.ok) throw new Error(job.error || 'Status check failed.');
 
       const pct = job.progress || 0;
@@ -305,6 +305,21 @@ function pollStatus(jobId) {
       processBtn.disabled = false;
     }
   }, 1200);
+}
+async function safeJson(res) {
+  const text = await res.text();
+  if (!text) {
+    throw new Error(
+      res.ok
+        ? 'Empty response from server.'
+        : `Server error (HTTP ${res.status}). This can happen if the app is still waking up from sleep — wait 30-60s and try again.`
+    );
+  }
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`Unexpected response (HTTP ${res.status}): ${text.slice(0, 200)}`);
+  }
 }
 
 function fmt(n, unit) { return (Math.round(n * 10) / 10) + ' ' + unit; }
