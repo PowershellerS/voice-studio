@@ -61,8 +61,10 @@ def index():
         {"key": p.key, "label": p.label, "description": p.description}
         for p in PRESETS.values()
     ]
-    return render_template("index.html", presets=presets, default_preset=DEFAULT_PRESET)
-
+    max_upload_mb = MAX_UPLOAD_BYTES // (1024 * 1024)
+    return render_template(
+        "index.html", presets=presets, default_preset=DEFAULT_PRESET, max_upload_mb=max_upload_mb
+    )
 
 @app.route("/api/upload/start", methods=["POST"])
 def upload_start():
